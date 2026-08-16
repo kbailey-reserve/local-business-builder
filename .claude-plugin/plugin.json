@@ -1,9 +1,10 @@
 {
   "name": "local-business-builder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Build SEO-optimized local business websites with 80-100+ programmatic pages using Astro 5, Tailwind CSS v4, and Cloudflare Pages",
-  "author": "Nicolas Gorrono",
-  "keywords": ["seo", "local-business", "astro", "website-builder", "programmatic-seo"],
-  "skills": { "autoDiscover": true },
-  "agents": { "autoDiscover": true }
+  "author": {
+    "name": "Nicolas Gorrono"
+  },
+  "repository": "https://github.com/kbailey-reserve/local-business-builder",
+  "keywords": ["seo", "local-business", "astro", "website-builder", "programmatic-seo"]
 }
