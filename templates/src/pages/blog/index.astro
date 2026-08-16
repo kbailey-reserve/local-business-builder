@@ -29,7 +29,7 @@ function formatDate(iso: string): string {
 
 <BaseLayout
   title={`Plumbing Tips & News | ${business.name}`}
-  description="Plumbing tips, maintenance guides, and local news from Texas Plumbing Solutions. Expert advice for homeowners in Brenham and Washington County, TX."
+  description={`Tips, maintenance guides, and local news from ${business.name}. Expert advice for homeowners in ${business.address.city} and the surrounding area.`}
 >
   <Breadcrumbs crumbs={[{ label: 'Blog' }]} />
 

@@ -37,6 +37,13 @@ export interface Business {
   // --- Identity ---
   /** Full legal/brand name shown in headers and structured data */
   name: string;
+  /**
+   * Schema.org @type for this business, e.g. "Plumber", "Electrician",
+   * "HVACBusiness", "RoofingContractor". Drives the JSON-LD type on every
+   * page (homepage, area pages, service pages, combo pages, testimonials).
+   * See the industry table in agents/site-builder.md for the full list.
+   */
+  schemaType: string;
   /** Shorter trading name for tight spaces (mobile header, footer) */
   shortName: string;
   /** One-sentence tagline shown below the logo or in the hero */
@@ -47,7 +54,7 @@ export interface Business {
   // --- Contact ---
   /** Primary phone number in display format, e.g. "(512) 555-0199" */
   phone: string;
-  /** Phone in tel: link format, e.g. "+15125550199" */
+  /** Full tel: URI for use directly as an <a href>, e.g. "tel:+15125550199" -- must include the "tel:" scheme prefix */
   phoneTel: string;
   /** Secondary/after-hours phone (optional, empty string if none) */
   phoneSecondary: string;
@@ -110,13 +117,14 @@ export interface Business {
 export const business: Business = {
   // --- Identity ---
   name: '__BUSINESS_NAME__',
+  schemaType: '__SCHEMA_TYPE__', // e.g. 'Plumber', 'Electrician', 'HVACBusiness' -- see industry table in agents/site-builder.md
   shortName: '__BUSINESS_SHORT_NAME__',
   tagline: '__BUSINESS_TAGLINE__',
   description: '__BUSINESS_DESCRIPTION__',
 
   // --- Contact ---
   phone: '__PHONE_DISPLAY__',
-  phoneTel: '__PHONE_TEL__',
+  phoneTel: '__PHONE_TEL__', // full tel: URI, e.g. "tel:+15125550199" -- MUST include the "tel:" prefix, not just the E.164 number
   phoneSecondary: '__PHONE_SECONDARY__', // leave '' if none
   email: '__EMAIL__',
 

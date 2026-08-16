@@ -44,32 +44,36 @@ Everything else (components, layouts, page routes, URL helpers) works out of the
 
 ## Phase 1: Research (Optional)
 
-If the user provides an existing website URL, research it before asking questions.
+If the user provides an existing website URL, or enough identifying info to find the business (name + city/state, or name + address), research it before asking questions.
 
 ### Steps
 
-1. Use `WebFetch` to retrieve the homepage and key pages (about, services, contact).
+1. Use `WebFetch` to retrieve the homepage and key pages (about, services, contact), if a website URL was given.
 2. Use `WebSearch` to find the business on Google Maps, Yelp, BBB, and other directories.
-3. Extract as much as possible:
-   - Business name and legal name
-   - Owner name
-   - Phone number, email, physical address
+3. **Google Business Profile lookup (do this whenever an existing, real business is being onboarded — not for a brand-new business that has no GBP yet).** This is the authoritative source for rating, review count, address, and phone number — prefer it over anything scraped from the business's own website, which can be stale.
+   - Requires `GOOGLE_PLACES_API_KEY` (same variable the plugin's optional AI image generation and the wider ecosystem use — ask the user for it if not already set as an env var, or skip this step and fall back to whatever the user/website provides directly).
+   - Call the Places "Find Place from Text" endpoint with a query built from `{business name}, {address or city}, {state}` to get the real `place_id`. This is a text-search match, not a guaranteed-correct one — if multiple candidates come back, or the result's name/address doesn't clearly match what the user described, show the candidate(s) to the user and ask them to confirm before using it.
+   - Once you have a confirmed `place_id`, call Place Details requesting `name,formatted_address,formatted_phone_number,rating,user_ratings_total,opening_hours,reviews,geometry` to get: the real star rating and review count, the real formatted address and phone number, real business hours, and up to 5 real recent reviews (each with `author_name`, `rating`, `text`, `relative_time_description`/`time`).
+   - Use these verified values — not user-typed or website-scraped ones — for `business.ts`'s `phone`/`address`/`coordinates`/`hours`/`googleBusinessUrl` (build as `https://www.google.com/maps/place/?q=place_id:{placeId}`) and for `seoContent.ts`'s `reviews` array (see "Real reviews only" under Phase 4, File 4 — use the real review data returned here, never invent).
+   - If the business has no matching Google listing (candidateCount is 0), don't treat this as an error — it likely means a genuinely new or very small business with no GBP yet. Fall back to whatever the user provides directly, and expect `reviews: []` to stay empty.
+   - Note on Google's review-content terms: displaying Google's review text with attribution is an explicitly supported use of this data, but caching/display requirements can change — since this generates a static site, recommend the user periodically rebuild (e.g. re-run this lookup every few months) to keep displayed reviews and ratings current rather than treating a one-time fetch as permanent.
+4. Extract as much as possible from the website/search steps too, to fill gaps the GBP lookup doesn't cover:
+   - Legal name, owner name
+   - Email
    - Services offered
    - Areas served (cities, counties, regions)
-   - Business hours
    - License or credential information
    - Schema type (what kind of business is it?)
    - Year established
-   - Reviews and testimonials
-4. Identify gaps and SEO problems:
+5. Identify gaps and SEO problems:
    - Missing area-specific pages
    - No JSON-LD schema markup
    - Poor or missing meta descriptions
    - No internal linking between services and areas
    - Missing FAQ sections
    - No blog content
-5. Present findings to the user in a clear summary.
-6. Ask: "Does this look correct? Should I adjust anything before we proceed to data gathering?"
+6. Present findings to the user in a clear summary, explicitly noting which fields came from the verified Google Business Profile vs. the website/search vs. still need to be asked about.
+7. Ask: "Does this look correct? Should I adjust anything before we proceed to data gathering?"
 
 ---
 
@@ -275,43 +279,59 @@ Generate the 4 data files that drive the entire site. Each file must exactly mat
 
 ### File 1: `src/data/business.ts`
 
-This file defines the core business identity. It must export:
+This file defines the core business identity. **Read `${CLAUDE_PLUGIN_ROOT}/templates/src/data/business.ts.template` directly before generating this file** — it is the authoritative source for the exact interface shape (field names do get added/changed as the plugin evolves; treat the summary below as a guide, not a substitute for reading the live template).
+
+As of this version, it exports:
 
 - `BusinessHours` interface: `{ days: string; hours: string }`
-- `Address` interface: `{ street: string; city: string; state: string; zip: string }`
+- `Address` interface: `{ street, city, state, stateCode, zip, country }`
 - `Coordinates` interface: `{ lat: number; lng: number }`
-- `Business` interface with all fields: name, legalName, owner, phone, phoneHref, email, website, address, coordinates, hours, license, yearEstablished, serviceRadius, schemaType, description, tagline
-- `business` const: a single `Business` object with all gathered data
-- `yearsInBusiness()` function: returns `new Date().getFullYear() - business.yearEstablished`
+- `Business` interface: `name, schemaType, shortName, tagline, description, phone, phoneTel, phoneSecondary, email, address, coordinates, siteUrl, googleBusinessUrl, socialMedia, licenseNumber, foundedYear, certifications, hours, emergencyService, emergencyCta, logo, logoWhite, ogImage`
+- `business` const: a single `Business` object with all gathered/verified data
+- `yearsInBusiness()` function: returns `new Date().getFullYear() - business.foundedYear`
 
-Example structure:
+Fill every `__PLACEHOLDER__` in the template. Key fields to get right:
+- `schemaType`: the Schema.org `@type` string from the industry table in Phase 2, Group 4 (e.g. `'Plumber'`, `'Electrician'`, `'HVACBusiness'`). This single field now drives the JSON-LD type on every page — see "Template Customization Points" below.
+- `phone`/`address`/`coordinates`/`hours`/`googleBusinessUrl`: use the values verified via the Google Places lookup in Phase 1 when available, in preference to user-typed or website-scraped values (which can be stale). `googleBusinessUrl` should be `https://www.google.com/maps/place/?q=place_id:{placeId}` from that lookup.
+- `certifications`: real certifications/memberships only (BBB, bonded, licensed, trade association, etc.) — leave the array empty rather than inventing generic ones if the user didn't provide any.
+
+Example structure (illustrative — verify field names against the live template):
 ```typescript
 export const business: Business = {
   name: 'Business Name',
-  legalName: 'Business Legal Name',
-  owner: 'Owner Name',
+  schemaType: 'Plumber',
+  shortName: 'Short Name',
+  tagline: 'Short tagline for the hero section',
+  description: 'Full business description for SEO.',
   phone: '(555) 123-4567',
-  phoneHref: 'tel:+15551234567',
+  phoneTel: '+15551234567',
+  phoneSecondary: '',
   email: 'info@example.com',
-  website: 'https://example.com',
   address: {
-    street: '',
+    street: '123 Main St',
     city: 'City',
-    state: 'TX',
+    state: 'Texas',
+    stateCode: 'TX',
     zip: '77834',
+    country: 'United States',
   },
   coordinates: { lat: 30.1669, lng: -96.3977 },
+  siteUrl: 'https://example.com',
+  googleBusinessUrl: 'https://www.google.com/maps/place/?q=place_id:ChIJ...',
+  socialMedia: { facebook: '', instagram: '', twitter: '', youtube: '', linkedin: '', nextdoor: '', yelp: '' },
+  licenseNumber: 'License Info Here',
+  foundedYear: 2013,
+  certifications: [],
   hours: [
     { days: 'Monday - Friday', hours: '8:00 AM - 5:00 PM' },
     { days: 'Saturday', hours: 'Emergencies Only' },
     { days: 'Sunday', hours: 'Closed' },
   ],
-  license: 'License Info Here',
-  yearEstablished: 2013,
-  serviceRadius: 'County and Region Description',
-  schemaType: 'Plumber',
-  description: 'Full business description for SEO.',
-  tagline: 'Short tagline for the hero section',
+  emergencyService: false,
+  emergencyCta: '',
+  logo: '/images/logo.svg',
+  logoWhite: '/images/logo-white.svg',
+  ogImage: '/images/og-image.jpg',
 };
 ```
 
@@ -415,8 +435,8 @@ It must export:
 
 - `FaqItem` interface: `{ question: string; answer: string }`
 - `generateFaqs(area, service?)` function: generates 5 FAQ items tailored to the area and optional service
-- `Review` interface: `{ author: string; date: string; rating: number; text: string; area?: string; service?: string }`
-- `reviews` const: array of 6+ placeholder `Review` objects
+- `Review` interface: `{ author: string; date: string; rating: number; text: string; area?: string; service?: string; source: string }`
+- `reviews` const: array of `Review` objects — see "Real reviews only" below, this is frequently `[]`
 - `getReviewsForPage(areaSlug?, serviceSlug?, count?)` function: returns the most relevant reviews
 
 The FAQ generator must produce questions about:
@@ -432,12 +452,15 @@ The FAQ answers must reference:
 - Price ranges (when a service is provided)
 - Years in business (calculated dynamically)
 
-The reviews array should contain placeholder reviews that:
-- Use realistic-sounding names
-- Reference specific services and areas from the data
-- Have dates within the last 12 months
-- Have ratings between 4.5 and 5.0
-- Describe realistic service experiences
+#### Real reviews only — NEVER fabricate
+
+**Do not invent reviewer names, ratings, dates, or review text under any circumstances.** This is not a style preference: `SeoTestimonials.astro` publishes the `reviews` array as `AggregateRating`/`Review` JSON-LD, and invented reviews published as structured data violate Google's review-markup guidelines and put the whole site at risk of losing rich-result eligibility (or worse, a manual action). It also misleads real visitors, since the template renders reviews as if they came from real customers.
+
+Populate `reviews` from real data only, in this order of preference:
+
+1. **Real reviews fetched from the business's Google Business Profile in Phase 1** (see the Google Places lookup added there). Use the reviewer's actual name, rating, text, and date exactly as returned by the API. Set `source: 'Google'` on each one. Google's Places API terms require attribution when displaying their review content — the template's empty-state and review-card UI already display `source` for this reason; do not strip it.
+2. **Real reviews the user pastes in directly** (from their own records, Yelp, Facebook, etc.) — use verbatim, set `source` to wherever they actually came from.
+3. **No real reviews available** (new business, or the user has none to share): leave `reviews: []` empty. This is the expected, correct state for a brand-new business — `SeoTestimonials.astro` already renders an honest "No reviews yet" empty state (with a link to the business's real Google listing if `business.googleBusinessUrl` is set) rather than a broken or fabricated one. Do not "fill in" placeholder reviews to make the site look more populated. Tell the user plainly that the reviews section will show this honest empty state until real reviews exist, and that this is intentional.
 
 **IMPORTANT**: The `seoContent.ts` file must import types from the sibling data files:
 ```typescript
@@ -588,6 +611,8 @@ When copying templates, ensure all of these files are included:
 
 After copying templates, these specific items need to be customized per business:
 
+**Schema type and business/testimonial name are automatic — do not hand-edit them.** `business.schemaType` (set once in Phase 4, File 1) and `business.name` drive the JSON-LD `@type` and `name` on the homepage, area pages, service pages, combo pages, and `SeoTestimonials.astro` automatically, since all of these import `business` from `../data/business`. Get `schemaType` right when generating `business.ts` and every page inherits it correctly — there is nothing to find-and-replace per file. If you ever find a literal `'Plumber'` string hardcoded in a page's JSON-LD instead of `business.schemaType`, that's a regression from the template — fix it there, not by hand-patching each page's output per site.
+
 ### In `astro.config.mjs`
 - Replace `site` value with the business website URL
 
@@ -607,11 +632,7 @@ After copying templates, these specific items need to be customized per business
 ### In `src/components/SEO.astro`
 - Update the `SITE_NAME` constant to the business name.
 
-### In `src/components/SeoTestimonials.astro`
-- Update the hardcoded `name: 'Texas Plumbing Solutions'` in the schema to use the actual business name.
-
 ### In `src/pages/index.astro`
-- Update the `@type` in the JSON-LD schema from `'Plumber'` to the correct schema type for the business
 - Update the hero `<h1>`, hero description, stats bar labels, section headings, and CTA text to match the business type
 - Update the `hasOfferCatalog.name` from `'Plumbing Services'` to match the business type
 - Update the "How We Work" steps to be appropriate for the business type
@@ -625,16 +646,9 @@ After copying templates, these specific items need to be customized per business
 - Update placeholder text in the contact form to match the business type
 - Update the emergency note text
 
-### In `src/pages/services/[service].astro`
-- Update the `@type` in the JSON-LD schema from `'Plumber'` to the correct schema type
-
 ### In `src/pages/areas/[area].astro`
-- Update the `@type` in the JSON-LD schema from `'Plumber'` to the correct schema type
 - Update the page title pattern (e.g., "Plumber in" to "Electrician in")
 - Update descriptive text that references "plumbing" to reference the correct industry
-
-### In `src/pages/services/[area]/[service].astro`
-- Update the `@type` in the JSON-LD schema from `'Plumber'` to the correct schema type
 
 ### In `src/layouts/BaseLayout.astro`
 - Update the GA4 tracking ID placeholder (`G-XXXXXXXXXX`) if the user provides one, or leave as placeholder

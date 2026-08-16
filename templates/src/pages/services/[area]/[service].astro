@@ -49,7 +49,7 @@ const schema = {
       name: `${service.name} in ${area.name}`,
       description: `${service.description} Serving ${area.name}, ${area.county} and surrounding communities.`,
       provider: {
-        '@type': 'Plumber',
+        '@type': business.schemaType,
         '@id': `${business.website}/#business`,
         name: business.name,
         telephone: business.phone,
@@ -198,7 +198,7 @@ const schema = {
           </p>
         </div>
         <a
-          href={business.phoneHref}
+          href={business.phoneTel}
           class="ml-auto hidden shrink-0 items-center gap-2 rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white shadow transition-colors hover:bg-amber-600 sm:inline-flex"
         >
           <Icon name="lucide:phone" class="size-4" />
@@ -349,7 +349,7 @@ const schema = {
         </p>
         <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
           <a
-            href={business.phoneHref}
+            href={business.phoneTel}
             class="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-brand-950 shadow-lg transition-all hover:bg-amber-400 hover:shadow-xl"
           >
             <Icon name="lucide:phone" class="size-5" />

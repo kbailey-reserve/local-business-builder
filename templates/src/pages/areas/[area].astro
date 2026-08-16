@@ -32,7 +32,7 @@ const metaDescription = `Licensed plumber serving ${area.name}, ${area.county}, 
 // Build LocalBusiness schema
 const schema = {
   '@context': 'https://schema.org',
-  '@type': 'Plumber',
+  '@type': business.schemaType,
   name: business.name,
   description: `${business.name} provides licensed residential and commercial plumbing services in ${area.name}, ${area.county}, Texas.`,
   telephone: business.phone,
@@ -136,7 +136,7 @@ const schema = {
 
           <div class="mt-6 border-t border-stone-100 pt-5">
             <a
-              href={business.phoneHref}
+              href={business.phoneTel}
               class="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-800 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-700"
             >
               <Icon name="lucide:phone" class="size-4" />
@@ -248,7 +248,7 @@ const schema = {
       </p>
       <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
         <a
-          href={business.phoneHref}
+          href={business.phoneTel}
           class="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-brand-900 shadow-sm transition-all hover:bg-stone-100 hover:shadow-md"
         >
           <Icon name="lucide:phone" class="size-4" />

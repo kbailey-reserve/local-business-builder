@@ -129,11 +129,11 @@ const schema = {
       </h2>
       <p class="mt-2 text-sm text-stone-600">
         If you have a plumbing question or need to schedule a service call, our team is ready
-        to help. We serve Brenham and all of Washington, Grimes, and Austin Counties.
+        to help. We serve {business.address.city} and the surrounding area.
       </p>
       <div class="mt-5 flex flex-wrap gap-4">
         <a
-          href={business.phoneHref}
+          href={business.phoneTel}
           class="inline-flex items-center gap-2 rounded-lg bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white shadow transition-colors hover:bg-brand-800"
         >
           <Icon name="lucide:phone" class="size-4" />

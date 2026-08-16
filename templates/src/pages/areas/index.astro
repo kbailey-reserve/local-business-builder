@@ -18,11 +18,22 @@ function priorityClasses(priority: string): string {
       return 'bg-stone-100 text-stone-500';
   }
 }
+
+// Real county list, derived from actual service area data -- never hardcode
+// specific county/region names, they vary per business.
+const counties = [...new Set(serviceAreas.map((a) => a.county))];
+function formatList(items: string[]): string {
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+}
+const countyList = formatList(counties);
 ---
 
 <BaseLayout
   title={`Service Areas | ${business.name}`}
-  description={`${business.name} serves Washington, Grimes, and Austin Counties in Central Texas. See our service areas, response times, and coverage for your town.`}
+  description={`${business.name} serves ${countyList} in ${business.address.state}. See our service areas, response times, and coverage for your town.`}
 >
   <Breadcrumbs crumbs={[{ label: 'Service Areas' }]} />
 
@@ -34,8 +45,8 @@ function priorityClasses(priority: string): string {
           Areas We Serve
         </h1>
         <p class="mt-4 text-lg leading-relaxed text-stone-600">
-          Based in Brenham, {business.name} provides reliable plumbing services throughout
-          Washington, Grimes, and Austin Counties. We know these communities because we are
+          Based in {business.address.city}, {business.name} provides reliable service throughout
+          {countyList}. We know these communities because we are
           part of them, and we are committed to fast response times no matter where you are
           in our coverage area.
         </p>
@@ -87,12 +98,12 @@ function priorityClasses(priority: string): string {
         <div>
           <h2 class="font-display text-3xl text-white">Not Sure If We Cover Your Area?</h2>
           <p class="mt-2 text-brand-200">
-            Give us a call. If you are anywhere in Washington, Grimes, or Austin County, chances are we can be there fast.
+            Give us a call. If you are anywhere in {countyList}, chances are we can be there fast.
           </p>
         </div>
         <div class="flex shrink-0 flex-wrap gap-4">
           <a
-            href={business.phoneHref}
+            href={business.phoneTel}
             class="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-brand-950 shadow-lg transition-all hover:bg-amber-400"
           >
             <Icon name="lucide:phone" class="size-5" />

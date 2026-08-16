@@ -826,7 +826,7 @@ The phone number must be visible at all times via a sticky header button:
 
 ```astro
 <a
-  href={business.phoneHref}
+  href={business.phoneTel}
   class="inline-flex items-center gap-2 rounded-lg bg-brand-800 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-brand-700 hover:shadow-md"
 >
   <Icon name="lucide:phone" class="size-4" />
@@ -959,7 +959,7 @@ The amber accent creates visual contrast against any brand color and signals "ca
 
 ### business.ts
 
-The central business configuration file. Every field is required unless marked optional.
+The central business configuration file. This summary can drift from the actual shipped template as the plugin evolves -- **read `${CLAUDE_PLUGIN_ROOT}/templates/src/data/business.ts.template` directly** before generating this file; treat the block below as a guide, not the authoritative source.
 
 ```typescript
 export interface BusinessHours {
@@ -971,7 +971,9 @@ export interface Address {
   street: string;
   city: string;
   state: string;
+  stateCode: string;          // e.g. "TX"
   zip: string;
+  country: string;
 }
 
 export interface Coordinates {
@@ -981,25 +983,38 @@ export interface Coordinates {
 
 export interface Business {
   name: string;
-  legalName: string;
-  owner: string;
-  phone: string;
-  phoneHref: string;          // tel:+1XXXXXXXXXX format
+  schemaType: string;         // From the Schema.org type mapping table -- drives @type on every page
+  shortName: string;
+  tagline: string;            // Short tagline for the hero section
+  description: string;        // 1-2 sentences, used in meta and schema
+  phone: string;               // Display format, e.g. "(512) 555-0199"
+  phoneTel: string;            // Full tel: URI, e.g. "tel:+15125550199" -- must include the "tel:" prefix
+  phoneSecondary: string;      // '' if none
   email: string;
-  website: string;            // Full URL with https://
   address: Address;
   coordinates: Coordinates;   // For schema.org GeoCoordinates
+  siteUrl: string;            // Full URL with https://
+  googleBusinessUrl: string;  // e.g. "https://www.google.com/maps/place/?q=place_id:{placeId}"
+  socialMedia: {
+    facebook: string; instagram: string; twitter: string;
+    youtube: string; linkedin: string; nextdoor: string; yelp: string;
+  };
+  licenseNumber: string;       // License number or certification
+  foundedYear: number;
+  certifications: string[];    // Real certifications only, [] if none
   hours: BusinessHours[];
-  license: string;            // License number or certification
-  yearEstablished: number;
-  serviceRadius: string;      // Human-readable, e.g., "Travis and Williamson Counties"
-  schemaType: string;         // From the Schema.org type mapping table
-  description: string;        // 1-2 sentences, used in meta and schema
-  tagline: string;            // Short tagline for the hero section
+  emergencyService: boolean;
+  emergencyCta: string;
+  logo: string;
+  logoWhite: string;
+  ogImage: string;
 }
 
 export const business: Business = {
-  // Populated with actual business data during build
+  // Populated with real, verified business data during build --
+  // prefer Google Places-verified phone/address/hours over user-typed or
+  // website-scraped values where available (see the review-sourcing
+  // principle in agents/site-builder.md, which applies equally here).
 };
 
 export function yearsInBusiness(): number {
