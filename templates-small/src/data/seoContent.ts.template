@@ -1,0 +1,169 @@
+// ============================================================
+// SEO Content: FAQs & Reviews
+// ============================================================
+// This file provides FAQ and review content used across the homepage
+// and service pages for SEO-rich structured data.
+//
+// Placeholders to replace:
+//   __BUSINESS_NAME__ : Full business name
+//   __PHONE__         : Display phone number, e.g. "(512) 555-0199"
+//   __LICENSE__       : License number, e.g. "TXRMP #12345" (or drop the line if not applicable)
+//   __CITY__          : Primary city name, e.g. "Austin"
+//   __STATE__         : State name, e.g. "Texas"
+//
+// The generateFaqs() function produces a general FAQ set for the
+// homepage, plus service-specific FAQs for individual service pages.
+// There is no area x service combination here (that's the
+// build-local-site skill) -- keep FAQs general to the business.
+// ============================================================
+
+export interface FaqItem {
+  /** The question (shown as the FAQ heading) */
+  question: string;
+  /** The answer (shown as the FAQ body, supports basic HTML) */
+  answer: string;
+}
+
+export interface Review {
+  /** Reviewer's full name */
+  author: string;
+  /** Star rating from 1 to 5 */
+  rating: number;
+  /** The review text */
+  text: string;
+  /** Date string, e.g. "2024-11-15" (ISO format for structured data) */
+  date: string;
+  /** Which service this review relates to (service slug) */
+  service?: string;
+  /** Source platform, e.g. "Google", "Yelp" */
+  source: string;
+}
+
+// ============================================================
+// FAQ Generation
+// ============================================================
+// Returns an array of FAQs appropriate for the given context.
+// Pass a service slug for service-specific FAQs. With no argument,
+// returns the general/homepage FAQ set.
+// ============================================================
+
+/**
+ * Generate contextual FAQs for a page.
+ * @param service - Optional service slug for service-specific FAQs
+ */
+export function generateFaqs(service?: string): FaqItem[] {
+  // --- General FAQs (appear on the homepage and every service page) ---
+  const general: FaqItem[] = [
+    {
+      question: 'Is __BUSINESS_NAME__ licensed and insured?',
+      answer:
+        'Yes. __BUSINESS_NAME__ is fully licensed (__LICENSE__), bonded, and insured in __STATE__. We carry general liability coverage for your protection.',
+    },
+    {
+      question: 'What areas does __BUSINESS_NAME__ serve?',
+      answer:
+        'We proudly serve __CITY__ and the surrounding area. Call __PHONE__ to confirm we cover your location.',
+    },
+    {
+      question: 'Do you offer free estimates?',
+      answer:
+        'Yes, we provide free estimates for most jobs. Call us at __PHONE__ to schedule yours.',
+    },
+    {
+      question: 'What forms of payment do you accept?',
+      answer:
+        'We accept cash, checks, and all major credit cards. Ask our team about available payment options.',
+    },
+  ];
+
+  // --- Service-Specific FAQs ---
+  // Add entries keyed by service slug. These appear on /services/[service]/ pages,
+  // in addition to the general FAQs above.
+  const serviceFaqs: Record<string, FaqItem[]> = {
+    // Example (uncomment and adapt for each real service):
+    //
+    // 'drain-cleaning': [
+    //   {
+    //     question: 'How much does drain cleaning cost?',
+    //     answer:
+    //       'Basic drain cleaning starts at $99-$199 per drain. Call __PHONE__ for a free estimate.',
+    //   },
+    // ],
+  };
+
+  const specific = service && serviceFaqs[service] ? serviceFaqs[service] : [];
+  return [...general, ...specific];
+}
+
+// ============================================================
+// Reviews
+// ============================================================
+// Populate with real customer reviews. These power:
+//   - Star rating aggregates in structured data (JSON-LD)
+//   - The testimonials section on the homepage
+//
+// Example entry (uncomment and duplicate):
+//
+// {
+//   author: 'Jane Smith',
+//   rating: 5,
+//   text: 'Fast, professional, and fair pricing. Highly recommend __BUSINESS_NAME__!',
+//   date: '2024-11-15',
+//   service: 'drain-cleaning',
+//   source: 'Google',
+// },
+// ============================================================
+
+export const reviews: Review[] = [
+  // Add reviews here
+];
+
+// ============================================================
+// Review Helper Functions
+// ============================================================
+
+/**
+ * Get reviews relevant to a specific page context.
+ * Filters by service slug when provided.
+ * Falls back to the highest-rated reviews if no service match is found.
+ *
+ * @param service - Optional service slug to filter by
+ * @param limit   - Maximum number of reviews to return (default: 6)
+ */
+export function getReviewsForPage(service?: string, limit: number = 6): Review[] {
+  const filtered = [...reviews];
+
+  if (service) {
+    const byService = filtered.filter((r) => r.service === service);
+    if (byService.length >= 2) return byService.slice(0, limit);
+  }
+
+  return filtered
+    .sort((a, b) => b.rating - a.rating)
+    .slice(0, limit);
+}
+
+/**
+ * Calculate the aggregate rating from all reviews.
+ * Returns an object suitable for JSON-LD AggregateRating.
+ */
+export function getAggregateRating(): {
+  ratingValue: string;
+  reviewCount: number;
+  bestRating: number;
+  worstRating: number;
+} {
+  if (reviews.length === 0) {
+    return { ratingValue: '0', reviewCount: 0, bestRating: 5, worstRating: 1 };
+  }
+
+  const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+  const avg = sum / reviews.length;
+
+  return {
+    ratingValue: avg.toFixed(1),
+    reviewCount: reviews.length,
+    bestRating: 5,
+    worstRating: 1,
+  };
+}

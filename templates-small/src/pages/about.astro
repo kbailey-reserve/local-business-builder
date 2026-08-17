@@ -1,0 +1,168 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { Icon } from 'astro-icon/components';
+import { business, yearsInBusiness } from '../data/business';
+import { serviceAreas, hasAreas } from '../data/serviceAreas';
+import { areaUrl, contactUrl } from '../lib/urls';
+
+const years = yearsInBusiness();
+---
+
+<BaseLayout
+  title={`About ${business.name}`}
+  description={`Learn about ${business.name} in ${business.address.city}, ${business.address.stateCode}. ${years}+ years of licensed, insured service.`}
+>
+  <Breadcrumbs crumbs={[{ label: 'About' }]} />
+
+  <!-- ============ HEADER ============ -->
+  <section class="py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-5 lg:px-8">
+      <div class="max-w-3xl animate-fade-up">
+        <h1 class="font-display text-4xl text-brand-900 sm:text-5xl">
+          About {business.name}
+        </h1>
+        <p class="mt-4 text-lg leading-relaxed text-stone-600">
+          {business.description}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OUR STORY ============ -->
+  <section class="pb-16 lg:pb-24">
+    <div class="mx-auto max-w-7xl px-5 lg:px-8">
+      <div class="grid gap-12 lg:grid-cols-2 lg:gap-16">
+        <!-- Story content -->
+        <div class="prose-editorial">
+          <h2>Our Story</h2>
+          <p>
+            {business.name} has been serving {business.address.city} and the surrounding area
+            since {business.foundedYear}, with a straightforward goal: honest, high-quality
+            work and fair prices.
+          </p>
+          <p>
+            We believe in doing the job right the first time and treating every customer's
+            property like our own. That approach has earned us a loyal base of repeat
+            customers across the region.
+          </p>
+        </div>
+
+        <!-- Owner spotlight (only rendered if an owner name was provided) -->
+        {business.ownerName && (
+          <div>
+            <div class="rounded-xl border border-stone-200 bg-white p-8">
+              <div class="flex items-center gap-4">
+                <div class="flex size-16 items-center justify-center rounded-full bg-brand-100">
+                  <Icon name="lucide:user" class="size-8 text-brand-700" />
+                </div>
+                <div>
+                  <h3 class="font-display text-xl text-brand-900">{business.ownerName}</h3>
+                  <p class="text-sm text-stone-500">Owner</p>
+                </div>
+              </div>
+              <div class="mt-6 border-t border-stone-100 pt-6">
+                <p class="text-xs font-medium uppercase tracking-wider text-stone-400">Credentials</p>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  {business.licenseNumber && (
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700">
+                      <Icon name="lucide:badge-check" class="size-3.5" />
+                      {business.licenseNumber}
+                    </span>
+                  )}
+                  {business.certifications.map((cert) => (
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700">
+                      <Icon name="lucide:shield-check" class="size-3.5" />
+                      {cert}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRUST SIGNALS ============ -->
+  <section class="bg-stone-100 py-16 lg:py-24">
+    <div class="mx-auto max-w-7xl px-5 lg:px-8">
+      <h2 class="text-center font-display text-3xl text-brand-900">
+        Why Customers Trust Us
+      </h2>
+
+      <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ...(business.licenseNumber ? [{ icon: 'lucide:badge-check', title: 'Licensed', detail: business.licenseNumber }] : []),
+          { icon: 'lucide:shield', title: 'Insured', detail: 'Liability coverage on every job for your protection.' },
+          ...(business.certifications.length > 0 ? [{ icon: 'lucide:award', title: business.certifications[0], detail: 'A trusted credential we hold to.' }] : []),
+          { icon: 'lucide:calendar', title: `${years}+ Years in Business`, detail: `Serving ${business.address.city} since ${business.foundedYear}.` },
+        ].map((item) => (
+          <div class="rounded-xl border border-stone-200 bg-white p-6">
+            <div class="flex size-12 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+              <Icon name={item.icon} class="size-6" />
+            </div>
+            <h3 class="mt-4 font-display text-lg text-brand-900">{item.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-stone-600">{item.detail}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AREAS WE COVER (only if the business has named areas) ============ -->
+  {hasAreas && (
+    <section class="py-16 lg:py-24">
+      <div class="mx-auto max-w-7xl px-5 lg:px-8">
+        <h2 class="text-center font-display text-3xl text-brand-900">
+          Areas We Serve
+        </h2>
+
+        <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {serviceAreas.map((area) => (
+            <a
+              href={areaUrl(area.slug)}
+              class="card-hover flex items-center gap-3 rounded-xl border border-stone-200 bg-white px-5 py-4 transition-colors"
+            >
+              <Icon name="lucide:map-pin" class="size-5 shrink-0 text-brand-600" />
+              <div>
+                <span class="font-medium text-brand-900">{area.name}</span>
+                <span class="block text-xs text-stone-500">{area.county}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ============ CTA ============ -->
+  <section class="bg-brand-900">
+    <div class="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
+      <div class="flex flex-col items-center gap-6 text-center sm:flex-row sm:justify-between sm:text-left">
+        <div>
+          <h2 class="font-display text-3xl text-white">Ready to Work With Us?</h2>
+          <p class="mt-2 text-brand-200">
+            Call today or send us a message online. We look forward to earning your trust.
+          </p>
+        </div>
+        <div class="flex shrink-0 flex-wrap gap-4">
+          <a
+            href={business.phoneTel}
+            class="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-brand-950 shadow-lg transition-all hover:bg-amber-400"
+          >
+            <Icon name="lucide:phone" class="size-5" />
+            {business.phone}
+          </a>
+          <a
+            href={contactUrl()}
+            class="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-white/20"
+          >
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

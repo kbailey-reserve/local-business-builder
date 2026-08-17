@@ -1,0 +1,240 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Icon } from 'astro-icon/components';
+import { business, yearsInBusiness } from '../data/business';
+import { serviceTypes } from '../data/serviceTypes';
+import { serviceUrl, contactUrl } from '../lib/urls';
+import SeoTestimonials from '../components/SeoTestimonials.astro';
+
+const years = yearsInBusiness();
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${business.siteUrl}/#website`,
+      url: business.siteUrl,
+      name: business.name,
+      description: business.description,
+      publisher: { '@id': `${business.siteUrl}/#business` },
+    },
+    {
+      '@type': business.schemaType,
+      '@id': `${business.siteUrl}/#business`,
+      name: business.name,
+      url: business.siteUrl,
+      telephone: business.phone,
+      email: business.email,
+      description: business.description,
+      foundingDate: `${business.foundedYear}`,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: business.address.street,
+        addressLocality: business.address.city,
+        addressRegion: business.address.stateCode,
+        postalCode: business.address.zip,
+        addressCountry: 'US',
+      },
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: business.coordinates.lat,
+        longitude: business.coordinates.lng,
+      },
+      hasOfferCatalog: {
+        '@type': 'OfferCatalog',
+        name: `${business.name} Services`,
+        itemListElement: serviceTypes.map((service) => ({
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: service.name,
+            description: service.description,
+          },
+        })),
+      },
+    },
+    {
+      '@type': 'WebPage',
+      '@id': `${business.siteUrl}/#webpage`,
+      url: business.siteUrl,
+      name: `${business.name} | ${business.address.city}, ${business.address.stateCode}`,
+      isPartOf: { '@id': `${business.siteUrl}/#website` },
+      about: { '@id': `${business.siteUrl}/#business` },
+      description: business.description,
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title={`${business.name} | ${business.address.city}, ${business.address.stateCode}`}
+  description={business.description}
+  schema={schema}
+>
+  <!-- ============ HERO ============ -->
+  <section class="relative overflow-hidden bg-gradient-to-br from-brand-900 to-brand-800">
+    <!-- Background hero image -->
+    <div class="absolute inset-0">
+      <img
+        src="/images/hero.webp"
+        alt={`${business.name} team at work`}
+        class="h-full w-full object-cover opacity-20"
+        width="2048"
+        height="1365"
+        loading="eager"
+      />
+    </div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(59,130,246,0.15),_transparent_70%)]" />
+
+    <div class="relative mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+      <div class="max-w-2xl animate-fade-up">
+        <h1 class="font-display text-4xl text-white sm:text-5xl lg:text-6xl">
+          {business.tagline}
+        </h1>
+        <p class="mt-6 text-lg leading-relaxed text-brand-200">
+          {business.description}
+        </p>
+        <div class="mt-8 flex flex-wrap gap-4">
+          <a
+            href={business.phoneTel}
+            class="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-brand-950 shadow-lg transition-all hover:bg-amber-400 hover:shadow-xl"
+          >
+            <Icon name="lucide:phone" class="size-5" />
+            Call {business.phone}
+          </a>
+          <a
+            href={contactUrl()}
+            class="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition-all hover:bg-white/20"
+          >
+            <Icon name="lucide:message-square" class="size-5" />
+            Get in Touch
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STATS BAR ============ -->
+  <section class="bg-brand-950">
+    <div class="mx-auto grid max-w-7xl grid-cols-2 gap-px sm:grid-cols-4">
+      {[
+        { icon: 'lucide:award', label: `${years}+ Years Experience` },
+        { icon: 'lucide:badge-check', label: 'Licensed & Insured' },
+        { icon: 'lucide:clock', label: business.emergencyService ? '24/7 Emergency Service' : `Serving ${business.address.city}` },
+        { icon: 'lucide:thumbs-up', label: 'Satisfaction Guaranteed' },
+      ].map((stat) => (
+        <div class="flex items-center justify-center gap-3 bg-brand-950 px-4 py-5">
+          <Icon name={stat.icon} class="size-5 shrink-0 text-amber-400" />
+          <span class="text-sm font-medium text-white">{stat.label}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- ============ SERVICES GRID ============ -->
+  <section class="py-16 lg:py-24">
+    <div class="mx-auto max-w-7xl px-5 lg:px-8">
+      <div class="text-center">
+        <h2 class="font-display text-3xl text-brand-900 sm:text-4xl">
+          Our Services
+        </h2>
+        <p class="mx-auto mt-4 max-w-2xl text-stone-600">
+          Straightforward, reliable service, done right the first time.
+        </p>
+      </div>
+
+      <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {serviceTypes.map((service, i) => (
+          <a
+            href={serviceUrl(service.slug)}
+            class={`card-hover group relative rounded-xl border border-stone-200 bg-white p-6 animate-fade-up stagger-${Math.min(i + 1, 6)}`}
+          >
+            {service.emergency && (
+              <span class="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                <Icon name="lucide:zap" class="size-3" />
+                24/7
+              </span>
+            )}
+            <div class="flex size-12 items-center justify-center rounded-lg bg-brand-50 text-brand-700 transition-colors group-hover:bg-brand-100">
+              <Icon name={`lucide:${service.icon}`} class="size-6" />
+            </div>
+            <h3 class="mt-4 font-display text-lg text-brand-900">
+              {service.name}
+            </h3>
+            <p class="mt-2 text-sm leading-relaxed text-stone-600">
+              {service.description}
+            </p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS (simple, no JS) ============ -->
+  <section class="bg-brand-950 py-16 lg:py-24">
+    <div class="mx-auto max-w-7xl px-5 lg:px-8">
+      <div class="text-center">
+        <h2 class="font-display text-3xl text-white sm:text-4xl">
+          How It Works
+        </h2>
+        <p class="mx-auto mt-4 max-w-2xl text-brand-300">
+          A simple, three-step process from your first call to a finished job.
+        </p>
+      </div>
+
+      <div class="mt-12 grid gap-6 sm:grid-cols-3">
+        {[
+          { step: 1, icon: 'lucide:phone-call', title: 'Reach Out', detail: `Call ${business.phone} or send a message. We will ask a few questions and schedule a time that works for you.` },
+          { step: 2, icon: 'lucide:clipboard-check', title: 'We Assess', detail: 'We take a look at the job and give you a clear, honest estimate before any work begins.' },
+          { step: 3, icon: 'lucide:check-circle', title: 'Job Done Right', detail: 'We complete the work to a high standard and walk you through everything before we leave.' },
+        ].map((item) => (
+          <div class="rounded-xl bg-brand-900/60 p-6 ring-1 ring-brand-800/60">
+            <div class="flex size-10 items-center justify-center rounded-lg bg-amber-500 text-brand-950">
+              <Icon name={item.icon} class="size-5" />
+            </div>
+            <p class="mt-4 text-xs font-bold text-amber-400">Step {item.step}</p>
+            <h3 class="mt-1 font-display text-lg text-white">{item.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-brand-300">{item.detail}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TESTIMONIALS ============ -->
+  <section class="border-y border-stone-200/60 bg-white py-14 lg:py-20">
+    <div class="mx-auto max-w-7xl px-5 lg:px-8">
+      <SeoTestimonials />
+    </div>
+  </section>
+
+  <!-- ============ CTA BANNER ============ -->
+  <section class="bg-brand-900">
+    <div class="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
+      <div class="flex flex-col items-center gap-6 text-center sm:flex-row sm:justify-between sm:text-left">
+        <div>
+          <h2 class="font-display text-3xl text-white">Ready to Get Started?</h2>
+          <p class="mt-2 text-brand-200">
+            Call us now or send a message. We are here to help.
+          </p>
+        </div>
+        <div class="flex shrink-0 flex-wrap gap-4">
+          <a
+            href={business.phoneTel}
+            class="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-brand-950 shadow-lg transition-all hover:bg-amber-400"
+          >
+            <Icon name="lucide:phone" class="size-5" />
+            {business.phone}
+          </a>
+          <a
+            href={contactUrl()}
+            class="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-white/20"
+          >
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { Icon } from 'astro-icon/components';
+import { business } from '../../data/business';
+import { serviceAreas } from '../../data/serviceAreas';
+import { areaUrl, contactUrl } from '../../lib/urls';
+---
+
+<BaseLayout
+  title={`Service Areas`}
+  description={`Areas served by ${business.name}, based in ${business.address.city}, ${business.address.stateCode}.`}
+>
+  <Breadcrumbs crumbs={[{ label: 'Service Areas' }]} />
+
+  <!-- ============ HEADER ============ -->
+  <section class="py-12 lg:py-16">
+    <div class="mx-auto max-w-7xl px-5 lg:px-8">
+      <div class="max-w-3xl animate-fade-up">
+        <h1 class="font-display text-4xl text-brand-900 sm:text-5xl">
+          Areas We Serve
+        </h1>
+        <p class="mt-4 text-lg leading-relaxed text-stone-600">
+          {business.name} proudly serves {business.address.city} and the following communities.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AREAS GRID ============ -->
+  <section class="pb-16 lg:pb-24">
+    <div class="mx-auto max-w-7xl px-5 lg:px-8">
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {serviceAreas.map((area, i) => (
+          <a
+            href={areaUrl(area.slug)}
+            class={`card-hover group rounded-xl border border-stone-200 bg-white p-6 animate-fade-up stagger-${Math.min(i + 1, 6)}`}
+          >
+            <div class="flex items-center gap-3">
+              <Icon name="lucide:map-pin" class="size-5 text-brand-600" />
+              <h2 class="font-display text-lg text-brand-900">{area.name}</h2>
+            </div>
+            <p class="mt-1 text-sm text-stone-500">{area.county}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="bg-brand-900">
+    <div class="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
+      <div class="flex flex-col items-center gap-6 text-center sm:flex-row sm:justify-between sm:text-left">
+        <div>
+          <h2 class="font-display text-3xl text-white">Not Sure If We Cover Your Area?</h2>
+          <p class="mt-2 text-brand-200">Give us a call, we are happy to check.</p>
+        </div>
+        <div class="flex shrink-0 flex-wrap gap-4">
+          <a
+            href={business.phoneTel}
+            class="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-brand-950 shadow-lg transition-all hover:bg-amber-400"
+          >
+            <Icon name="lucide:phone" class="size-5" />
+            {business.phone}
+          </a>
+          <a
+            href={contactUrl()}
+            class="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-white/20"
+          >
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

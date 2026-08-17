@@ -1,0 +1,118 @@
+---
+import { Icon } from 'astro-icon/components';
+import { business } from '../../data/business';
+import { serviceTypes } from '../../data/serviceTypes';
+import { serviceAreas } from '../../data/serviceAreas';
+import { serviceUrl, contactUrl } from '../../lib/urls';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import SeoFaq from '../../components/SeoFaq.astro';
+
+import type { ServiceArea } from '../../data/serviceAreas';
+
+export function getStaticPaths() {
+  return serviceAreas.map((area) => ({
+    params: { area: area.slug },
+    props: { area },
+  }));
+}
+
+interface Props {
+  area: ServiceArea;
+}
+
+const { area } = Astro.props;
+
+const pageTitle = `${business.name} in ${area.name}`;
+const metaDescription = area.description.length > 155
+  ? area.description.slice(0, 152) + '...'
+  : area.description;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': business.schemaType,
+  name: business.name,
+  telephone: business.phone,
+  url: business.siteUrl,
+  areaServed: {
+    '@type': 'City',
+    name: area.name,
+    containedInPlace: {
+      '@type': 'AdministrativeArea',
+      name: area.county,
+    },
+  },
+};
+---
+
+<BaseLayout title={pageTitle} description={metaDescription} schema={schema}>
+  <Breadcrumbs
+    crumbs={[
+      { label: 'Service Areas', href: '/areas/' },
+      { label: area.name },
+    ]}
+  />
+
+  <!-- Hero -->
+  <section class="mx-auto max-w-7xl px-5 pb-12 pt-8 lg:px-8">
+    <h1 class="font-display text-3xl text-brand-900 sm:text-4xl lg:text-5xl">
+      {pageTitle}
+    </h1>
+    <p class="mt-6 max-w-3xl text-lg leading-relaxed text-stone-600">
+      {area.description}
+    </p>
+  </section>
+
+  <!-- Services -->
+  <section class="border-t border-stone-200/60 bg-white py-16">
+    <div class="mx-auto max-w-7xl px-5 lg:px-8">
+      <h2 class="font-display text-2xl text-brand-900 sm:text-3xl">
+        Services Available in {area.name}
+      </h2>
+
+      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {serviceTypes.map((service) => (
+          <a
+            href={serviceUrl(service.slug)}
+            class="card-hover group rounded-xl border border-stone-200 bg-white p-6"
+          >
+            <div class="flex size-12 items-center justify-center rounded-lg bg-brand-50 text-brand-700 transition-colors group-hover:bg-brand-100">
+              <Icon name={`lucide:${service.icon}`} class="size-6" />
+            </div>
+            <h3 class="mt-4 font-display text-lg text-brand-900">{service.name}</h3>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <div class="border-t border-stone-200/60 bg-white">
+    <SeoFaq />
+  </div>
+
+  <!-- CTA -->
+  <section class="bg-brand-900 py-16">
+    <div class="mx-auto max-w-4xl px-5 text-center lg:px-8">
+      <h2 class="font-display text-2xl text-white sm:text-3xl">
+        Need Service in {area.name}?
+      </h2>
+      <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <a
+          href={business.phoneTel}
+          class="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-brand-900 shadow-sm transition-all hover:bg-stone-100 hover:shadow-md"
+        >
+          <Icon name="lucide:phone" class="size-4" />
+          {business.phone}
+        </a>
+        <a
+          href={contactUrl()}
+          class="inline-flex items-center gap-2 rounded-lg border border-brand-300/40 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-brand-800"
+        >
+          <Icon name="lucide:mail" class="size-4" />
+          Request a Quote
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

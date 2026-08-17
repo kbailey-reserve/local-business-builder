@@ -1,0 +1,149 @@
+// ============================================================
+// Service Types Configuration
+// ============================================================
+// Each service type defines a core offering the business provides.
+// These generate:
+//   - /services/[service]/ pages (one page per service)
+//   - Navigation menus, internal links, and structured data
+//
+// Populate the serviceTypes array with one entry per service (3-8 typical
+// for a small brochure site).
+// The slug must be URL-safe (lowercase, hyphens, no spaces).
+// ============================================================
+
+export interface ProcessStep {
+  /** Step title, e.g. "Inspection" */
+  title: string;
+  /** Brief description of what happens in this step */
+  description: string;
+}
+
+export interface PriceRange {
+  /** Service tier or item name, e.g. "Basic Drain Cleaning" */
+  label: string;
+  /** Low end of the range in dollars, e.g. 99 */
+  min: number;
+  /** High end of the range in dollars, e.g. 249 */
+  max: number;
+  /** Optional unit, e.g. "per visit", "per linear foot" */
+  unit?: string;
+}
+
+export interface ServiceType {
+  /** URL-safe identifier, e.g. "drain-cleaning" */
+  slug: string;
+  /** Display name, e.g. "Drain Cleaning" */
+  name: string;
+  /** Short name for navigation and breadcrumbs (if different from name) */
+  shortName: string;
+  /** 1-2 sentence summary for cards, meta descriptions, and previews */
+  description: string;
+  /**
+   * Path to the hero/featured image for this service.
+   * Relative to /public, e.g. "/images/services/drain-cleaning.webp".
+   * The agent should generate or source an appropriate image and
+   * place it in /public/images/services/.
+   */
+  image: string;
+  /** Lucide icon name for UI cards, e.g. "droplets" */
+  icon: string;
+  /** Is this an emergency/urgent service? (affects display priority) */
+  emergency: boolean;
+  /** Is this a featured service? (shown on homepage) */
+  featured: boolean;
+  /** Ordered steps the customer can expect */
+  process: ProcessStep[];
+  /** Typical price ranges (used for transparency sections) */
+  priceRanges: PriceRange[];
+  /** Keywords for internal SEO (not shown to users) */
+  keywords: string[];
+  /** Related service slugs for cross-linking */
+  relatedServices: string[];
+}
+
+// ============================================================
+// Service Types Data
+// ============================================================
+// Add one object per service the business offers.
+// Example entry (uncomment and duplicate as needed):
+//
+// {
+//   slug: 'drain-cleaning',
+//   name: 'Drain Cleaning',
+//   shortName: 'Drains',
+//   description: 'Professional drain cleaning services to clear clogs and restore flow. We handle kitchen sinks, showers, and main sewer lines.',
+//   image: '/images/services/drain-cleaning.webp',
+//   icon: 'droplets',
+//   emergency: true,
+//   featured: true,
+//   process: [
+//     { title: 'Inspection', description: 'Camera inspection to locate the blockage.' },
+//     { title: 'Clearing', description: 'High-pressure hydro jetting or mechanical snaking.' },
+//     { title: 'Testing', description: 'Flow test to confirm the drain is fully cleared.' },
+//     { title: 'Prevention', description: 'Recommendations to prevent future clogs.' },
+//   ],
+//   priceRanges: [
+//     { label: 'Simple Drain Clearing', min: 99, max: 199, unit: 'per drain' },
+//     { label: 'Hydro Jetting', min: 350, max: 600 },
+//   ],
+//   keywords: ['drain cleaning', 'clogged drain', 'hydro jetting'],
+//   relatedServices: ['sewer-repair', 'water-heater-repair'],
+// },
+// ============================================================
+
+export const serviceTypes: ServiceType[] = [
+  // Add service types here
+];
+
+// ============================================================
+// Helper Functions
+// ============================================================
+
+/**
+ * Find a service type by its URL slug.
+ * Returns undefined if the slug does not match any service.
+ */
+export function getServiceBySlug(slug: string): ServiceType | undefined {
+  return serviceTypes.find((service) => service.slug === slug);
+}
+
+/**
+ * Get the display name for a service slug.
+ * Returns the slug (title-cased) as a fallback if the service is not found.
+ */
+export function getServiceName(slug: string): string {
+  const service = getServiceBySlug(slug);
+  if (service) return service.name;
+  // Fallback: convert slug to title case
+  return slug
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+/**
+ * Get all services marked as emergency.
+ * Useful for emergency banners and priority display.
+ */
+export function getEmergencyServices(): ServiceType[] {
+  return serviceTypes.filter((service) => service.emergency);
+}
+
+/**
+ * Get only featured services (for homepage or nav highlights).
+ */
+export function getFeaturedServices(): ServiceType[] {
+  return serviceTypes.filter((service) => service.featured);
+}
+
+/**
+ * Get related services for a given service slug.
+ * Returns the full ServiceType objects, not just slugs.
+ */
+export function getRelatedServices(slug: string): ServiceType[] {
+  const service = getServiceBySlug(slug);
+  if (!service) return [];
+  return service.relatedServices
+    .map((relatedSlug) => getServiceBySlug(relatedSlug))
+    .filter((s): s is ServiceType => s !== undefined);
+}

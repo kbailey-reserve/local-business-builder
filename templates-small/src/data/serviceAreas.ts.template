@@ -1,0 +1,76 @@
+// ============================================================
+// Service Areas Configuration (optional)
+// ============================================================
+// Only populate this file if the business genuinely serves distinct
+// named areas beyond its home city (e.g. a service-area business that
+// covers several towns). Single-location businesses (a storefront,
+// clinic, restaurant, etc.) should leave this array empty -- the
+// agent should then skip copying src/pages/areas/ entirely.
+//
+// Each service area generates one simple /areas/[area]/ landing page.
+// Keep this list short: 0-3 areas for a small brochure site. If a
+// business needs more than that, or a service x area combination grid,
+// use the build-local-site skill instead.
+//
+// The slug must be URL-safe (lowercase, hyphens, no spaces).
+// ============================================================
+
+export interface ServiceArea {
+  /** URL-safe identifier, e.g. "north-austin" */
+  slug: string;
+  /** Display name, e.g. "North Austin" */
+  name: string;
+  /** County or broader region name for grouping */
+  county: string;
+  /** Brief 1-2 sentence description for SEO meta tags and page copy */
+  description: string;
+}
+
+// ============================================================
+// Service Areas Data
+// ============================================================
+// Add one object per area the business serves. Leave the array empty
+// for a single-location business.
+// Example entry (uncomment and duplicate as needed):
+//
+// {
+//   slug: 'north-austin',
+//   name: 'North Austin',
+//   county: 'Travis County',
+//   description: 'Serving North Austin, TX with fast, reliable service and local expertise.',
+// },
+// ============================================================
+
+export const serviceAreas: ServiceArea[] = [
+  // Add service areas here, or leave empty for a single-location business
+];
+
+/** True when this business has one or more named service areas. Used to
+ * conditionally show/hide the Areas nav link, footer column, and pages. */
+export const hasAreas = serviceAreas.length > 0;
+
+// ============================================================
+// Helper Functions
+// ============================================================
+
+/**
+ * Find a service area by its URL slug.
+ * Returns undefined if the slug does not match any area.
+ */
+export function getAreaBySlug(slug: string): ServiceArea | undefined {
+  return serviceAreas.find((area) => area.slug === slug);
+}
+
+/**
+ * Get the display name for an area slug.
+ * Returns the slug (title-cased) as a fallback if the area is not found.
+ */
+export function getAreaName(slug: string): string {
+  const area = getAreaBySlug(slug);
+  if (area) return area.name;
+  // Fallback: convert slug to title case
+  return slug
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}

@@ -1,0 +1,140 @@
+---
+import { Icon } from 'astro-icon/components';
+import { business } from '../data/business';
+import { serviceTypes } from '../data/serviceTypes';
+import { serviceAreas, hasAreas } from '../data/serviceAreas';
+import { serviceUrl, areaUrl } from '../lib/urls';
+---
+
+<footer class="bg-brand-950 text-white">
+  <!-- Subtle top border gradient -->
+  <div class="h-px w-full bg-gradient-to-r from-transparent via-brand-500/40 to-transparent" />
+
+  <div class="mx-auto max-w-7xl px-5 pb-10 pt-16 lg:px-8">
+    <!-- Top section: brand + tagline -->
+    <div class="border-b border-white/10 pb-10">
+      <a href="/" class="group inline-flex items-center gap-2.5">
+        <div class="flex size-10 items-center justify-center rounded-lg bg-brand-800">
+          <svg class="size-5 text-brand-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-display text-xl text-white">__BUSINESS_NAME_LINE_1__</span>
+          <span class="text-[10px] font-medium uppercase tracking-[0.2em] text-stone-500">
+            __BUSINESS_NAME_LINE_2__
+          </span>
+        </div>
+      </a>
+      <p class="mt-4 max-w-md text-sm leading-relaxed text-stone-400">
+        {business.tagline}. Serving {business.address.city} since {business.foundedYear}.
+      </p>
+    </div>
+
+    <!-- Link columns -->
+    <div class={`grid gap-8 pt-10 sm:grid-cols-2 ${hasAreas ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
+      <!-- Column 1: Services -->
+      <div>
+        <h3 class="mb-4 text-xs font-semibold uppercase tracking-wider text-stone-500">
+          Services
+        </h3>
+        <ul class="space-y-2.5">
+          {serviceTypes.map((service) => (
+            <li>
+              <a
+                href={serviceUrl(service.slug)}
+                class="text-sm text-stone-400 transition-colors hover:text-white"
+              >
+                {service.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Column 2: Service Areas (only if the business has named areas) -->
+      {hasAreas && (
+        <div>
+          <h3 class="mb-4 text-xs font-semibold uppercase tracking-wider text-stone-500">
+            Service Areas
+          </h3>
+          <ul class="space-y-2.5">
+            {serviceAreas.map((area) => (
+              <li>
+                <a
+                  href={areaUrl(area.slug)}
+                  class="text-sm text-stone-400 transition-colors hover:text-white"
+                >
+                  {area.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <!-- Column 3: Contact Info -->
+      <div>
+        <h3 class="mb-4 text-xs font-semibold uppercase tracking-wider text-stone-500">
+          Contact Info
+        </h3>
+        <ul class="space-y-3">
+          {business.address.street && (
+            <li class="flex items-start gap-2.5">
+              <Icon name="lucide:map-pin" class="mt-0.5 size-4 shrink-0 text-stone-500" />
+              <span class="text-sm text-stone-400">
+                {business.address.street}, {business.address.city}, {business.address.state} {business.address.zip}
+              </span>
+            </li>
+          )}
+          {!business.address.street && (
+            <li class="flex items-start gap-2.5">
+              <Icon name="lucide:map-pin" class="mt-0.5 size-4 shrink-0 text-stone-500" />
+              <span class="text-sm text-stone-400">
+                {business.address.city}, {business.address.state} {business.address.zip}
+              </span>
+            </li>
+          )}
+          <li class="flex items-start gap-2.5">
+            <Icon name="lucide:phone" class="mt-0.5 size-4 shrink-0 text-stone-500" />
+            <a
+              href={business.phoneTel}
+              class="text-sm text-stone-400 transition-colors hover:text-white"
+            >
+              {business.phone}
+            </a>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <Icon name="lucide:mail" class="mt-0.5 size-4 shrink-0 text-stone-500" />
+            <a
+              href={`mailto:${business.email}`}
+              class="text-sm text-stone-400 transition-colors hover:text-white"
+            >
+              {business.email}
+            </a>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <Icon name="lucide:clock" class="mt-0.5 size-4 shrink-0 text-stone-500" />
+            <div class="text-sm text-stone-400">
+              {business.hours.map((schedule) => (
+                <p>{schedule.days}: {schedule.hours}</p>
+              ))}
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 sm:flex-row">
+      <p class="text-xs text-stone-600">
+        &copy; {new Date().getFullYear()} {business.name}. All rights reserved.
+      </p>
+      {business.licenseNumber && (
+        <div class="flex gap-4 text-xs text-stone-600">
+          <span>{business.licenseNumber}</span>
+        </div>
+      )}
+    </div>
+  </div>
+</footer>
